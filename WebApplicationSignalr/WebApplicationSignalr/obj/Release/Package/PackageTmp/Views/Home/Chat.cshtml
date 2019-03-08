@@ -1,0 +1,62 @@
+﻿@{
+    ViewBag.Title = "聊天視窗";
+}
+@section scripts
+{
+    <!--引用SignalR庫. -->
+    <script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+    <!--引用自動生成的SignalR 集線器(Hub)腳本.在運行的時候在瀏覽器的Source下可看到 -->
+   @* <script src="~/signalr/hubs"></script>*@
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: "http://localhost:53306/signalr/hubs",
+                dataType: "script",
+                async: false
+            });
+            // 引用自動生成的集線器代理
+            var chat = $.connection.serverhub;
+
+            // 開始連接伺服器
+            $.connection.hub.start().done(function () {
+                $('#sendmessage').click(function () {
+                    // 調用伺服器端集線器的Send方法
+                    chat.server.send($('#message').val());
+                    // 清空輸入框信息並獲取焦點
+                    $('#message').val('').focus();
+                });
+            });
+
+
+            // 定義伺服器端調用的客戶端sendMessage來顯示新消息
+            chat.client.sendMessage = function (name, message) {
+                // 向頁面添加消息
+                $('#discussion').append('<li><strong>' + htmlEncode(name)
+                    + '</strong>: ' + htmlEncode(message) + '</li>');
+            };
+
+            // 設置焦點到輸入框
+            $('#message').focus();
+
+        });
+
+        // 為顯示的消息進行Html編碼
+        function htmlEncode(value) {
+            var encodedValue = $('<div />').text(value).html();
+            return encodedValue;
+        }
+    </script>
+
+    <h2>Chat</h2>
+
+
+    <div class="container">
+        <input type="text" id="message" />
+        <input type="button" id="sendmessage" value="Send" />
+        <input type="hidden" id="displayname" />
+        <ul id="discussion"></ul>
+    </div>
+
+
+}
